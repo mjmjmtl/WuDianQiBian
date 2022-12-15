@@ -6,6 +6,29 @@ import networkx as nx
 import trimesh
 from scipy.spatial.transform import Rotation
 
+def get_soccer_points(subdivisions):
+    sphere: trimesh.Trimesh = trimesh.creation.icosphere(subdivisions=subdivisions)
+
+    key_point_distance = 1 << subdivisions
+
+    # black pieces on soccer ball
+    is_black = np.full(len(sphere.vertices), False)
+    graph: nx.Graph = sphere.vertex_adjacency_graph
+    for u in range(12):
+        for _, v in nx.bfs_edges(graph, u, depth_limit=key_point_distance // 3):
+            is_black[v] = True
+
+    # black edges on soccer ball
+    for u in range(12):
+        shortest_path = nx.single_source_shortest_path(graph, u, key_point_distance)
+        for v in range(u + 1, 12):
+            if v in shortest_path:
+                is_black[shortest_path[v]] = True
+
+    black_points = sphere.vertices[is_black]
+    white_points = sphere.vertices[~is_black]
+    return black_points, white_points
+
 
 screen_size = 60
 theta_spacing = 0.07
@@ -19,31 +42,9 @@ R2 = 2
 K2 = 20
 K1 = screen_size * K2 * 3 / (8 * (R1 + R2))
 
-def get_points():
-    subdivisions = 6
-    length_between_vertices = 1 << subdivisions
-    black_piece_depth_limit = length_between_vertices // 3
-    sphere: trimesh.Trimesh = trimesh.creation.icosphere(subdivisions=subdivisions)
 
-    # black pieces on soccer ball
-    is_black = np.full(len(sphere.vertices), False)
-    graph: nx.Graph = sphere.vertex_adjacency_graph
-    for i in range(12):
-        for _, black_node in nx.bfs_edges(sphere.vertex_adjacency_graph, i, depth_limit=black_piece_depth_limit):
-            is_black[black_node] = True
 
-    # black edges on soccer ball
-    for u in range(12):
-        shortest_path = nx.single_source_shortest_path(graph, u, length_between_vertices)
-        for v in range(u + 1, 12):
-            if v in shortest_path:
-                is_black[shortest_path[v]] = True
-
-    black_points = sphere.vertices[is_black]
-    white_points = sphere.vertices[~is_black]
-    return black_points, white_points
-
-black_points, white_points = get_points()
+black_points, white_points = get_soccer_points(6)
 
 def render_frame(A: float, B: float) -> np.ndarray:
     """
