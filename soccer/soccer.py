@@ -74,7 +74,7 @@ def render_frame(A: float, B: float) -> np.ndarray:
             yp = int(screen_size / 2 - K1 * ooz * y)
             if is_black:
                 output[yp, xp] = ' '
-                return
+                continue
             l = np.dot((x,y,z), (0, 1, -1)) / 3
             # if l < 0:
             #     continue
@@ -108,3 +108,4 @@ if __name__ == "__main__":
         print("\x1b[H")
         pprint(render_frame(A, B))
         time.sleep(0.1)
+    #
