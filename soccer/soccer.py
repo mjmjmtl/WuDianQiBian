@@ -61,14 +61,19 @@ K = 190
 CENTER = np.array([0, 0, -184])
 L = np.array([0, -np.sqrt(2) / 2, -np.sqrt(2) / 2])
 
-colorama.init()
 if __name__ == "__main__":
+    # Init terminal display.
+    colorama.init()
     print('\033[?25l', end="")
+
+    # Generate points on soccer sphere.
     black_points, white_points = get_soccer_points(6)
+
+    # Let's roll!
     for i in range(100):
         print("\x1b[H")
-        rotation_matrix = Rotation.from_euler('y', i / 100).as_matrix()
         output = np.full((screen_size, screen_size), " ")
+        rotation_matrix = Rotation.from_euler('y', i / 100).as_matrix()
         draw_points(output, (white_points) @ rotation_matrix.T + CENTER, CENTER, False)
         draw_points(output, (black_points) @ rotation_matrix.T + CENTER, CENTER, True)
         print(*[''.join(np.repeat(row, 2)) for row in output], sep="\n")
