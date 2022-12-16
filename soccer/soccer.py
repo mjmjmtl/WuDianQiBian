@@ -22,7 +22,7 @@ def get_soccer_points(subdivisions):
         for _, v in nx.bfs_edges(graph, u, depth_limit=key_point_distance // 3):
             is_black[v] = True
 
-    # Black strips on soccer ball.
+    # Black strips connecting two black pieces.
     for u in range(12):
         shortest_path = nx.single_source_shortest_path(graph, u, key_point_distance)
         for v in range(u + 1, 12):
