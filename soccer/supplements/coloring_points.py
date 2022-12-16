@@ -38,17 +38,19 @@ if __name__ == "__main__":
         x=black_points[:, 0], y=black_points[:, 1], z=black_points[:, 2],
         mode='markers',
         marker=dict(
-            size=12,
+            size=16,
             color='black'
-        )
+        ),
+        name="black points"
     )
     white_scatters = go.Scatter3d(
         x=white_points[:, 0], y=white_points[:, 1], z=white_points[:, 2],
         mode='markers',
         marker=dict(
-            size=12,
+            size=16,
             color='white'
-        )
+        ),
+        name="white points"
     )
     fig = go.Figure(data=[black_scatters, white_scatters])
     fig.show()
