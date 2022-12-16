@@ -35,7 +35,7 @@ def get_soccer_points(subdivisions):
     return black_points, white_points
 
 
-def draw_points(output, points, is_black):
+def draw_points(points, is_black, output):
     for point in points:
         normal = point - SPHERE_CENTER
 
@@ -74,6 +74,6 @@ if __name__ == "__main__":
         print("\x1b[H")  # Need this in Windows system.
         output = np.full((SCREEN_SIZE, SCREEN_SIZE), " ")
         rotation_matrix = scipy.spatial.transform.Rotation.from_euler('y', i / 100).as_matrix()
-        draw_points(output, white_points @ rotation_matrix.T + SPHERE_CENTER, False)
-        draw_points(output, black_points @ rotation_matrix.T + SPHERE_CENTER, True)
+        draw_points(white_points @ rotation_matrix.T + SPHERE_CENTER, False, output)
+        draw_points(black_points @ rotation_matrix.T + SPHERE_CENTER, True, output)
         print(*[''.join(np.repeat(row, 2)) for row in output], sep="\n")
