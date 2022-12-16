@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import colorama
 import networkx as nx
@@ -31,6 +29,23 @@ def get_soccer_points(subdivisions):
     return black_points, white_points
 
 
+def draw_points(output, points, center, is_black):
+    for point in points:
+        normal = point - center
+        if np.dot(normal, np.array([0, 0, -K]) - center) < 0:
+            continue
+        xp = int(point[0] * K / (K + point[2]) + screen_size / 2)
+        yp = int(point[1] * K / (K + point[2]) + screen_size / 2)
+        if is_black:
+            output[yp, xp] = ' '
+            continue
+        l = np.dot(normal, L)
+        if l < 0:
+            l = 0  # add some light to the dark part
+        luminance_index = int(l * (len(illumination) - 1))
+        output[yp, xp] = illumination[luminance_index]
+
+
 screen_size = 60
 theta_spacing = 0.07
 phi_spacing = 0.02
@@ -40,8 +55,9 @@ A = 1
 B = 1
 R1 = 1
 R2 = 2
-K2 = 20
-K1 = screen_size * K2 * 3 / (8 * (R1 + R2))
+K2 = 6
+K = 150
+L = np.array([0, -np.sqrt(2) / 2, -np.sqrt(2) / 2])
 
 black_points, white_points = get_soccer_points(6)
 
@@ -52,42 +68,10 @@ def render_frame(A: float, B: float) -> np.ndarray:
     Based on the pseudocode from: https://www.a1k0n.net/2011/07/20/donut-math.html
     """
     rotation_matrix = Rotation.from_euler('y', A).as_matrix()
-    # rotation_matrix = np.array([])
-    # cos_A = np.cos(A)
-    # sin_A = np.sin(A)
-
-    output = np.full((screen_size, screen_size), " ")  # (40, 40)
-
-    radius = 3.5
-
-    def _draw_points(points, is_black):
-        points = points * radius @ rotation_matrix.T
-        # points = points * radius
-        # points = rotation_matrix.apply(points)
-        for x, y, z in points:
-            # x *= radius
-            # y *= radius
-            # z *= radius
-            # x, z = x * cos_A - z * sin_A, z * cos_A + x * sin_A
-            if z > 0:
-                continue
-            ooz = 1 / (z + K2)  # "one over z"
-            xp = int(screen_size / 2 + K1 * ooz * x)
-            yp = int(screen_size / 2 - K1 * ooz * y)
-            if is_black:
-                output[yp, xp] = ' '
-                continue
-            l = np.dot((x, y, z), (0, 1, -1)) / 3
-            # if l < 0:
-            #     continue
-            luminance_index = int(l * 8)
-            luminance_index = min(luminance_index, len(illumination) - 1)
-
-            output[yp, xp] = illumination[luminance_index]
-
-    _draw_points(white_points, False)
-    _draw_points(black_points, True)
-
+    output = np.full((screen_size, screen_size), " ")
+    center = np.array([0, 0, K2 - K])
+    draw_points(output, (white_points) @ rotation_matrix.T + center, center, False)
+    draw_points(output, (black_points) @ rotation_matrix.T + center, center, True)
     return output
 
 
@@ -105,5 +89,5 @@ if __name__ == "__main__":
         B += phi_spacing
         print("\x1b[H")
         pprint(render_frame(A, B))
-        time.sleep(0.1)
+        # time.sleep(0.1)
     #
