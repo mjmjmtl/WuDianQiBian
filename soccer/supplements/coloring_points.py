@@ -13,6 +13,7 @@ def get_soccer_points(subdivisions):
 
     # Black pieces on soccer ball.
     for u in range(12):  # The first 12 vertices are from the original icosahedron.
+        is_vertex_black[u] = True
         for _, v in nx.bfs_edges(graph, u, depth_limit=key_point_distance // 3):
             is_vertex_black[v] = True
 
