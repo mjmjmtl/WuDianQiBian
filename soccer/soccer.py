@@ -18,7 +18,7 @@ def get_soccer_points(subdivisions):
     is_black = np.full(len(sphere.vertices), False)
 
     # Black pieces on soccer ball.
-    for u in range(12):
+    for u in range(12):  # The first 12 vertices are from the original icosahedron.
         for _, v in nx.bfs_edges(graph, u, depth_limit=key_point_distance // 3):
             is_black[v] = True
 
@@ -70,10 +70,10 @@ if __name__ == "__main__":
     black_points, white_points = get_soccer_points(6)
 
     # Let's roll!
-    for i in range(100):
+    for i in np.arange(0, 100, 0.1):
         print("\x1b[H")  # Need this in Windows system.
         output = np.full((SCREEN_SIZE, SCREEN_SIZE), " ")
-        rotation_matrix = scipy.spatial.transform.Rotation.from_euler('y', i / 100).as_matrix()
+        rotation_matrix = scipy.spatial.transform.Rotation.from_euler('y', i).as_matrix()
         draw_points(white_points @ rotation_matrix.T + SPHERE_CENTER, False, output)
         draw_points(black_points @ rotation_matrix.T + SPHERE_CENTER, True, output)
         print(*[''.join(np.repeat(row, 2)) for row in output], sep="\n")
