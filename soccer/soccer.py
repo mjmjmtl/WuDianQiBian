@@ -4,8 +4,8 @@ import numpy as np
 import scipy.spatial.transform
 import trimesh
 
-SCREEN_SIZE = 72                                     # Output size is (SCREEN_SIZE, SCREEN_SIZE).
-ILLUMINATION = ".,-~:;=!*#$@"                        # characters for lighting
+SCREEN_SIZE = 72                                     # Output size is (SCREEN_SIZE, SCREEN_SIZE)
+ILLUMINATION = ".,-~:;=!*#$@"                        # Characters for lighting
 K = 190                                              # Camera is positioned at (0, 0, -K)
 SPHERE_CENTER = np.array([0, 0, -184])               # The center of sphere
 L = np.array([0, -np.sqrt(2) / 2, -np.sqrt(2) / 2])  # Direction towards light source
@@ -17,19 +17,19 @@ def get_soccer_points(subdivisions):
     key_point_distance = 1 << subdivisions
     is_black = np.full(len(sphere.vertices), False)
 
-    # Black pieces on soccer ball
+    # Black pieces on soccer ball.
     for u in range(12):
         for _, v in nx.bfs_edges(graph, u, depth_limit=key_point_distance // 3):
             is_black[v] = True
 
-    # Black strips on soccer ball
+    # Black strips on soccer ball.
     for u in range(12):
         shortest_path = nx.single_source_shortest_path(graph, u, key_point_distance)
         for v in range(u + 1, 12):
             if v in shortest_path:
                 is_black[shortest_path[v]] = True
 
-    # Construct black and white points
+    # Construct black and white points.
     black_points = sphere.vertices[is_black]
     white_points = sphere.vertices[~is_black]
     return black_points, white_points
@@ -39,11 +39,11 @@ def draw_points(points, is_black, output):
     for point in points:
         normal = point - SPHERE_CENTER
 
-        # Skip if the point is invisible.
+        # Skip if the point is occluded.
         if np.dot(normal, np.array([0, 0, -K]) - SPHERE_CENTER) < 0:
             continue
 
-        # project to screen.
+        # Project to screen.
         xp = int(point[0] * K / (K + point[2]) + SCREEN_SIZE / 2)
         yp = int(point[1] * K / (K + point[2]) + SCREEN_SIZE / 2)
 
@@ -55,7 +55,7 @@ def draw_points(points, is_black, output):
         # Add lighting otherwise.
         l = np.dot(normal, L)
         if l < 0:
-            l = 0  # add some light to the dark part
+            l = 0  # add some light to the dark part.
         luminance_index = int(l * (len(ILLUMINATION) - 1))
         output[yp, xp] = ILLUMINATION[luminance_index]
 
