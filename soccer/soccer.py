@@ -1,29 +1,35 @@
-import numpy as np
 import colorama
 import networkx as nx
+import numpy as np
+import scipy.spatial.transform
 import trimesh
-from scipy.spatial.transform import Rotation
 
+SCREEN_SIZE = 72                                     # Output size is (SCREEN_SIZE, SCREEN_SIZE).
+ILLUMINATION = ".,-~:;=!*#$@"                        # characters for lighting
+K = 190                                              # Camera is positioned at (0, 0, -K)
+SPHERE_CENTER = np.array([0, 0, -184])               # The center of sphere
+L = np.array([0, -np.sqrt(2) / 2, -np.sqrt(2) / 2])  # Direction towards light source
 
 def get_soccer_points(subdivisions):
-    # initialization
+    # Initialization
     sphere = trimesh.creation.icosphere(subdivisions=subdivisions)
     graph = sphere.vertex_adjacency_graph
     key_point_distance = 1 << subdivisions
     is_black = np.full(len(sphere.vertices), False)
 
-    # black pieces on soccer ball
+    # Black pieces on soccer ball
     for u in range(12):
         for _, v in nx.bfs_edges(graph, u, depth_limit=key_point_distance // 3):
             is_black[v] = True
 
-    # black edges on soccer ball
+    # Black strips on soccer ball
     for u in range(12):
         shortest_path = nx.single_source_shortest_path(graph, u, key_point_distance)
         for v in range(u + 1, 12):
             if v in shortest_path:
                 is_black[shortest_path[v]] = True
 
+    # Construct black and white points
     black_points = sphere.vertices[is_black]
     white_points = sphere.vertices[~is_black]
     return black_points, white_points
@@ -38,8 +44,8 @@ def draw_points(output, points, center, is_black):
             continue
 
         # project to screen.
-        xp = int(point[0] * K / (K + point[2]) + screen_size / 2)
-        yp = int(point[1] * K / (K + point[2]) + screen_size / 2)
+        xp = int(point[0] * K / (K + point[2]) + SCREEN_SIZE / 2)
+        yp = int(point[1] * K / (K + point[2]) + SCREEN_SIZE / 2)
 
         # Set it to ' ' if is_black.
         if is_black:
@@ -50,16 +56,10 @@ def draw_points(output, points, center, is_black):
         l = np.dot(normal, L)
         if l < 0:
             l = 0  # add some light to the dark part
-        luminance_index = int(l * (len(illumination) - 1))
-        output[yp, xp] = illumination[luminance_index]
+        luminance_index = int(l * (len(ILLUMINATION) - 1))
+        output[yp, xp] = ILLUMINATION[luminance_index]
 
 
-screen_size = 72
-illumination = ".,-~:;=!*#$@"
-
-K = 190
-CENTER = np.array([0, 0, -184])
-L = np.array([0, -np.sqrt(2) / 2, -np.sqrt(2) / 2])
 
 if __name__ == "__main__":
     # Init terminal display.
@@ -71,9 +71,9 @@ if __name__ == "__main__":
 
     # Let's roll!
     for i in range(100):
-        print("\x1b[H")
-        output = np.full((screen_size, screen_size), " ")
-        rotation_matrix = Rotation.from_euler('y', i / 100).as_matrix()
-        draw_points(output, (white_points) @ rotation_matrix.T + CENTER, CENTER, False)
-        draw_points(output, (black_points) @ rotation_matrix.T + CENTER, CENTER, True)
+        print("\x1b[H")  # Need this in Windows system.
+        output = np.full((SCREEN_SIZE, SCREEN_SIZE), " ")
+        rotation_matrix = scipy.spatial.transform.Rotation.from_euler('y', i / 100).as_matrix()
+        draw_points(output, white_points @ rotation_matrix.T + SPHERE_CENTER, SPHERE_CENTER, False)
+        draw_points(output, black_points @ rotation_matrix.T + SPHERE_CENTER, SPHERE_CENTER, True)
         print(*[''.join(np.repeat(row, 2)) for row in output], sep="\n")
