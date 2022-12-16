@@ -9,23 +9,23 @@ def get_soccer_points(subdivisions):
     sphere = trimesh.creation.icosphere(subdivisions=subdivisions)
     graph = sphere.vertex_adjacency_graph
     key_point_distance = 1 << subdivisions
-    is_black = np.full(len(sphere.vertices), False)
+    is_vertex_black = np.full(len(sphere.vertices), False)
 
     # Black pieces on soccer ball.
     for u in range(12):  # The first 12 vertices are from the original icosahedron.
         for _, v in nx.bfs_edges(graph, u, depth_limit=key_point_distance // 3):
-            is_black[v] = True
+            is_vertex_black[v] = True
 
     # Black strips connecting two black pieces.
     for u in range(12):
         shortest_path = nx.single_source_shortest_path(graph, u, key_point_distance)
         for v in range(u + 1, 12):
             if v in shortest_path:
-                is_black[shortest_path[v]] = True
+                is_vertex_black[shortest_path[v]] = True
 
     # Construct black and white points.
-    black_points = sphere.vertices[is_black]
-    white_points = sphere.vertices[~is_black]
+    black_points = sphere.vertices[is_vertex_black]
+    white_points = sphere.vertices[~is_vertex_black]
     return black_points, white_points
 
 
