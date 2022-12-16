@@ -30,7 +30,10 @@ def get_soccer_points(subdivisions):
 
 
 if __name__ == "__main__":
+    # Generate points.
     black_points, white_points = get_soccer_points(4)
+
+    # Visualize points.
     black_scatters = go.Scatter3d(
         x=black_points[:, 0], y=black_points[:, 1], z=black_points[:, 2],
         mode='markers',
